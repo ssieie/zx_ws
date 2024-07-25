@@ -2,7 +2,7 @@
 name = "webservice"
 version = "0.1.0"
 edition = "2021"
-default-run = "teacher-service"
+default-run = "blog-service"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -21,4 +21,10 @@ sqlx = { version = "0.7.4", features = [
 ] }
 
 [[bin]]
-name = "teacher-service"
+name = "blog-service"
+
+[profile.release]
+lto = true
+debug = false
+opt-level = 3
+codegen-units = 1

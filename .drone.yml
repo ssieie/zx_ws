@@ -1,0 +1,58 @@
+kind: pipeline
+type: docker
+name: blog_server
+
+steps:
+  - name: build
+    image: rust:1.72
+    commands:
+      - rustup component add clippy
+      - cargo clippy --all-targets --all-features -- -D warnings
+      - cargo build --release
+
+  # - name: test
+  #   image: rust:1.72
+  #   commands:
+  #     - cargo test --release
+
+  - name: docker_build
+    image: plugins/docker
+    settings:
+      username:
+        from_secret: docker_username
+      password:
+        from_secret: docker_password
+      repo: zxandhy/zxblogservice
+      tags: latest
+    when:
+      event:
+        - push
+        - tag
+
+  - name: deploy
+    image: appleboy/drone-ssh
+    settings:
+      host: 
+        from_secret: deploy_server
+      username:
+        from_secret: deploy_user
+      password:
+        from_secret: deploy_password
+      port: 22
+      script:
+        - scp ./target/release/blog-service $DEPLOY_USER@$DEPLOY_SERVER:/path/to/deploy
+        - ssh $DEPLOY_USER@$DEPLOY_SERVER "cd /path/to/deploy && ./blog-service"
+    when:
+      branch:
+        - main
+      event:
+        - push
+        - tag
+
+trigger:
+  event:
+    - push
+    - pull_request
+  branch:
+    - main
+    - feature/*
