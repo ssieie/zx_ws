@@ -2,7 +2,6 @@ use actix_web::{web, App, HttpServer};
 use dotenv::dotenv;
 use std::env;
 use std::io;
-use std::sync::Mutex;
 use sqlx::postgres::PgPoolOptions;
 
 #[path = "../dbaccess/mod.rs"]
@@ -30,17 +29,15 @@ async fn main() -> io::Result<()> {
     .unwrap();
 
     let shared_data = web::Data::new(AppState {
-        health_check_response: "Im OK.".to_string(),
-        visit_count: Mutex::new(0),
         db: pg_pool,
     });
 
     let app = move || {
         App::new()
             .app_data(shared_data.clone())
-            .configure(general_routes)
-            .configure(course_routes)
+            .configure(web_routes)
+            .configure(admin_routes)
     };
-
-    HttpServer::new(app).bind("127.0.0.1:3000")?.run().await
+    println!("HttpServer Run In 0.0.0.0:9000");
+    HttpServer::new(app).bind("0.0.0.0:9000")?.run().await
 }
