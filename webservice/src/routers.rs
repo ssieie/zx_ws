@@ -1,4 +1,4 @@
-use crate::handlers::course::*;
+use crate::handlers::common::*;
 use crate::handlers::general::*;
 use actix_web::web;
 
