@@ -1,14 +1,17 @@
+use actix_web::web;
 use crate::errors::MyError;
 use sqlx::postgres::PgPool;
 use crate::models::login::{Login};
 use uuid::Uuid;
 use sqlx::Error as SQLxError;
 use crate::common::api_response::ApiResponse;
+use crate::state::AppState;
 
 pub async fn valid_login_db(
-    pool: &PgPool,
+    app_state: web::Data<AppState>,
     info: Login,
 ) -> Result<ApiResponse<String>, MyError> {
+    let pool: &PgPool = &app_state.db;
     let user = sqlx::query!(r#"SELECT password FROM public.user where username = $1"#,info.username)
         .fetch_one(pool)
         .await
@@ -22,18 +25,10 @@ pub async fn valid_login_db(
         // 成功
         let token = Uuid::new_v4().to_string();
 
-        let res = sqlx::query!(r#"UPDATE public.user SET token = $1 where username = $2"#,token,info.username)
-            .execute(pool)
-            .await
-            .map_err(|e| match e {
-                _ => MyError::DBError("数据库未知错误".into()),
-            })?;
+        let mut authorization = app_state.authorization.lock().unwrap();
+        *authorization = token.clone();
 
-        if res.rows_affected() > 0 {
-            Ok(ApiResponse::success(token, "登录成功"))
-        } else {
-            Err(MyError::NotFound("用户未找到或未更新任何行".into()))
-        }
+        Ok(ApiResponse::success(token, "登录成功"))
     } else {
         Err(MyError::CustomError("密码错误".into()))
     }

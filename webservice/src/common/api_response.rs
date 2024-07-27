@@ -17,6 +17,15 @@ impl<T> ApiResponse<T> {
         }
     }
 
+    // 构造自定义响应
+    pub fn custom(data: Option<T>, message: &str, status: u16) -> Self {
+        ApiResponse {
+            data,
+            message: message.to_string(),
+            status,
+        }
+    }
+
     // 构造错误响应
     pub fn error(message: &str, status: u16) -> Self {
         ApiResponse {

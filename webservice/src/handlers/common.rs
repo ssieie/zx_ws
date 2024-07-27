@@ -8,5 +8,5 @@ pub async fn valid_login(
     app_state: web::Data<AppState>,
     login: web::Json<Login>,
 ) -> Result<HttpResponse, MyError> {
-    valid_login_db(&app_state.db, login.try_into()?).await.map(|res| HttpResponse::Ok().json(res))
+    valid_login_db(app_state,login.try_into()?).await.map(|res| HttpResponse::Ok().json(res))
 }

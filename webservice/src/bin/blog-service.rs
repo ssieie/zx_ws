@@ -4,9 +4,13 @@ use dotenv::dotenv;
 use std::env;
 use std::io;
 use std::process::exit;
+use std::sync::Mutex;
 use std::time::Duration;
 use sqlx::postgres::PgPoolOptions;
 use log::{error, info};
+use routers::*;
+use state::AppState;
+use crate::middleware::auth::{Auth};
 
 #[path = "../dbaccess/mod.rs"]
 mod dbaccess;
@@ -14,6 +18,8 @@ mod dbaccess;
 mod handlers;
 #[path = "../models/mod.rs"]
 mod models;
+#[path = "../middleware/mod.rs"]
+mod middleware;
 #[path = "../common/mod.rs"]
 mod common;
 #[path = "../routers.rs"]
@@ -22,9 +28,6 @@ mod routers;
 mod state;
 #[path = "../errors.rs"]
 mod errors;
-
-use routers::*;
-use state::AppState;
 
 const HTTP_ADDR: &str = "0.0.0.0:9000";
 
@@ -38,10 +41,12 @@ async fn main() -> io::Result<()> {
 
     let shared_data = web::Data::new(AppState {
         db: pg_pool,
+        authorization: Mutex::new(String::new()),
     });
 
     let app = move || {
         App::new()
+            .wrap(Auth)
             .wrap(
                 Cors::default()
                     .allowed_origin("http://localhost:8888")
