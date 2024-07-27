@@ -41,7 +41,7 @@ async fn main() -> io::Result<()> {
 
     let shared_data = web::Data::new(AppState {
         db: pg_pool,
-        authorization: Mutex::new(String::new()),
+        authorization: Mutex::new(String::from("")),
     });
 
     let app = move || {
@@ -53,12 +53,13 @@ async fn main() -> io::Result<()> {
                     .allowed_origin("http://localhost:9999")
                     .allowed_origin("https://www.zxandhy.top")
                     .allowed_origin("https://admin.zxandhy.top")
-                    .allowed_methods(vec!["GET", "POST", "DELETE", "OPTIONS"])
+                    .allowed_methods(vec!["GET", "POST", "PUT", "DELETE", "OPTIONS"])
                     .allowed_headers(vec!["Content-Type", "Authorization"])
                     .allowed_header(http::header::ACCEPT)
                     .supports_credentials()
             )
             .app_data(shared_data.clone())
+            .configure(health_routes)
             .configure(web_routes)
             .configure(admin_routes)
     };

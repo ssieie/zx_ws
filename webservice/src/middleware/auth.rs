@@ -2,10 +2,7 @@ use std::future::{ready, Ready};
 
 use actix_web::{dev::{forward_ready, Service, ServiceRequest, ServiceResponse, Transform}, http::header::HeaderValue, http::StatusCode, Error, error, HttpResponse, web};
 use futures_util::future::LocalBoxFuture;
-use sqlx::types::JsonValue::Null;
-use crate::common::api_response::ApiResponse;
 use crate::state::AppState;
-use sqlx::postgres::PgPool;
 
 pub struct Auth;
 
@@ -81,5 +78,5 @@ fn has_permission(req: &ServiceRequest) -> bool {
         }
     }
 
-    req.path() == "/login" || req.path() == "/health" || req.path().starts_with("/web")
+    req.path() == "/api/login" || req.path() == "health" || req.path().starts_with("/web")
 }
