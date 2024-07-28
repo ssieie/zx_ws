@@ -1,6 +1,6 @@
 use std::future::{ready, Ready};
 
-use actix_web::{dev::{forward_ready, Service, ServiceRequest, ServiceResponse, Transform}, http::header::HeaderValue, http::StatusCode, Error, error, HttpResponse, web};
+use actix_web::{dev::{forward_ready, Service, ServiceRequest, ServiceResponse, Transform}, http::header::HeaderValue, Error, error, web};
 use futures_util::future::LocalBoxFuture;
 use crate::state::AppState;
 
@@ -17,8 +17,8 @@ where
 {
     type Response = ServiceResponse<B>;
     type Error = Error;
-    type InitError = ();
     type Transform = AuthMiddleware<S>;
+    type InitError = ();
     type Future = Ready<Result<Self::Transform, Self::InitError>>;
 
     fn new_transform(&self, service: S) -> Self::Future {

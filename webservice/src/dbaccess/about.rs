@@ -1,4 +1,3 @@
-use serde::{Deserialize, Serialize};
 use crate::errors::MyError;
 use sqlx::postgres::PgPool;
 use crate::common::api_response::ApiResponse;
