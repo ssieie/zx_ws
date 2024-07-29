@@ -4,6 +4,7 @@ use actix_web::web;
 use crate::handlers::about::*;
 use crate::handlers::article::*;
 use crate::handlers::category::*;
+use crate::handlers::introduce::*;
 
 pub fn health_routes(cfg: &mut web::ServiceConfig) {
     cfg.service(
@@ -14,19 +15,30 @@ pub fn health_routes(cfg: &mut web::ServiceConfig) {
 
 pub fn web_routes(cfg: &mut web::ServiceConfig) {
     cfg.service(
-        web::scope("/web").service(
-            web::scope("/about")
-                .route("", web::get().to(get_about))
-        ).service(
-            web::scope("/article")
-                .route("", web::get().to(get_article_list_web))
-        )
+        web::scope("/web")
+            .service(
+                web::scope("/about")
+                    .route("", web::get().to(get_about))
+            )
+            .service(
+                web::scope("/article")
+                    .route("", web::get().to(get_article_list_web))
+                    .route("/{id}", web::get().to(get_article))
+                    .route("hot", web::get().to(get_article_hot_list_web))
+            )
+            .service(
+                web::scope("/introduce")
+                    .route("", web::post().to(get_introduce_list))
+            )
     );
 }
 
 pub fn admin_routes(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/api")
+            .service(web::scope("/requestLog")
+                .route("", web::post().to(request_log))
+            )
             .service(web::scope("/login")
                 .route("", web::post().to(valid_login))
             )
@@ -49,6 +61,13 @@ pub fn admin_routes(cfg: &mut web::ServiceConfig) {
                     .route("/update", web::post().to(update_article))
                     .route("/{id}", web::get().to(get_article))
                     .route("/{id}", web::delete().to(delete_article)),
+            )
+            .service(
+                web::scope("/introduce")
+                    .route("/list", web::post().to(get_introduce_list))
+                    .route("/add", web::post().to(add_introduce))
+                    .route("/update", web::post().to(update_introduce))
+                    .route("/{id}", web::delete().to(delete_introduce)),
             )
     );
 }

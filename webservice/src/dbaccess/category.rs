@@ -12,7 +12,7 @@ pub async fn get_category_db(
     let search_pattern = format!("%{}%", data.category_name);
     let rows = sqlx::query_as!(
         Category,
-        r#"SELECT * FROM public.category where category_name ILIKE $1"#,
+        r#"SELECT * FROM public.category where category_name ILIKE $1 ORDER BY create_time DESC"#,
         search_pattern
     )
         .fetch_all(pool)

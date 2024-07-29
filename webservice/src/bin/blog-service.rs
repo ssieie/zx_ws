@@ -4,13 +4,16 @@ use dotenv::dotenv;
 use std::env;
 use std::io;
 use std::process::exit;
-use std::sync::Mutex;
 use std::time::Duration;
 use sqlx::postgres::PgPoolOptions;
 use log::{error, info};
 use routers::*;
 use state::AppState;
 use crate::middleware::auth::{Auth};
+use crate::middleware::request_record::RequestRecord;
+use std::collections::HashMap;
+use std::sync::{Arc, Mutex};
+use tokio::time::{interval_at, Duration as TokioDuration, Instant};
 
 #[path = "../dbaccess/mod.rs"]
 mod dbaccess;
@@ -39,13 +42,30 @@ async fn main() -> io::Result<()> {
     let pg_pool = PgPoolOptions::new().connect(&database_url).await
         .unwrap();
 
+    let ip_article_access_map = Arc::new(Mutex::new(HashMap::new()));
+    let ip_article_access_map_clone = ip_article_access_map.clone();
+
+    let cleanup_handle = tokio::spawn(async move {
+        let midnight = Instant::now() + TokioDuration::from_secs(60 * 60 * 24);
+        let mut interval = interval_at(midnight, TokioDuration::from_secs(60 * 60 * 24));
+
+        loop {
+            interval.tick().await;
+            let mut map = ip_article_access_map_clone.lock().unwrap();
+            map.clear();
+        }
+    });
+
     let shared_data = web::Data::new(AppState {
         db: pg_pool,
-        authorization: Mutex::new(String::from("")),
+        ip_article_access_map,
+        authorization: Mutex::new(String::from("93c522ac-9e80-4f7c-a3c5-4571662bca91")),
+        _cleanup_handle: cleanup_handle,
     });
 
     let app = move || {
         App::new()
+            .wrap(RequestRecord)
             .wrap(Auth)
             .wrap(
                 Cors::default()

@@ -24,6 +24,8 @@ log = "0.4.21"
 md5 = "0.7.0"
 futures-util = "0.3.30"
 
+tokio = "1.39.2"
+
 [dependencies.uuid]
 version = "1.10.0"
 features = [

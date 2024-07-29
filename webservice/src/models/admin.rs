@@ -130,6 +130,11 @@ pub struct ArticleList {
 
     pub describe: String,
 
+    pub heat: i32,
+
+    #[serde(rename = "likeNumber")]
+    pub like_number: i32,
+
     #[serde(rename = "createTime")]
     pub create_time: Option<NaiveDateTime>,
 
@@ -144,6 +149,31 @@ impl From<web::Json<ArticleList>> for ArticleList {
             c_name: article.c_name.clone(),
             title: article.title.clone(),
             describe: article.describe.clone(),
+            heat: article.heat,
+            like_number: article.like_number,
+            create_time: article.create_time,
+            update_time: article.update_time,
+        }
+    }
+}
+
+#[derive(Serialize, Debug, Clone, sqlx::FromRow)]
+pub struct ArticleSimpleList {
+    pub id: i32,
+
+    pub title: String,
+
+    #[serde(rename = "createTime")]
+    pub create_time: Option<NaiveDateTime>,
+
+    #[serde(rename = "updateTime")]
+    pub update_time: Option<NaiveDateTime>,
+}
+impl From<web::Json<ArticleSimpleList>> for ArticleSimpleList {
+    fn from(article: web::Json<ArticleSimpleList>) -> Self {
+        Self {
+            id: article.id,
+            title: article.title.clone(),
             create_time: article.create_time,
             update_time: article.update_time,
         }
@@ -200,9 +230,43 @@ impl From<web::Json<UpdateArticle>> for UpdateArticle {
             c_name: article.c_name.clone(),
             title: article.title.clone(),
             describe: article.describe.clone(),
-            text: article.text.clone()
+            text: article.text.clone(),
         }
     }
 }
 
-/************* *************/
+/*************introduceManage*************/
+#[derive(Serialize, Deserialize, Debug, Clone, sqlx::FromRow)]
+pub struct Introduce {
+    pub id: i32,
+
+    pub text: String,
+
+    #[serde(rename = "createTime")]
+    pub create_time: Option<NaiveDateTime>,
+
+    #[serde(rename = "updateTime")]
+    pub update_time: Option<NaiveDateTime>,
+}
+impl From<web::Json<Introduce>> for Introduce {
+    fn from(introduce: web::Json<Introduce>) -> Self {
+        Self {
+            id: introduce.id,
+            text: introduce.text.clone(),
+            create_time: introduce.create_time,
+            update_time: introduce.update_time,
+        }
+    }
+}
+
+#[derive(Deserialize, Debug, Clone, sqlx::FromRow)]
+pub struct CreateIntroduce {
+    pub text: String,
+}
+impl From<web::Json<CreateIntroduce>> for CreateIntroduce {
+    fn from(introduce: web::Json<CreateIntroduce>) -> Self {
+        Self {
+            text: introduce.text.clone(),
+        }
+    }
+}

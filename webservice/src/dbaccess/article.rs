@@ -2,7 +2,7 @@ use crate::errors::MyError;
 use sqlx::postgres::PgPool;
 use crate::common::api_response::ApiResponse;
 use sqlx::Error as SQLxError;
-use crate::models::admin::{Article, ArticleList, CreateArticle, UpdateArticle};
+use crate::models::admin::{Article, ArticleList, ArticleSimpleList, CreateArticle, UpdateArticle};
 use chrono::{Local};
 
 pub async fn get_article_list_db(
@@ -22,11 +22,12 @@ pub async fn get_article_list_db(
 
     let rows = sqlx::query_as!(
         ArticleList,
-        r#"SELECT id,c_id,c_name,title,describe,create_time,update_time
+        r#"SELECT id,c_id,c_name,title,describe,heat,like_number,create_time,update_time
            FROM public.article
            where title ILIKE $1
            and describe ILIKE $2
-           and (c_id = $3 OR $3 IS NULL)"#,
+           and (c_id = $3 OR $3 IS NULL)
+           ORDER BY create_time DESC"#,
         search_pattern,
         search_pattern_desc,
         data.c_id
@@ -120,15 +121,48 @@ pub async fn del_article_db(
     Ok(ApiResponse::success("".into(), "删除成功"))
 }
 
+pub async fn update_article_heat_db(
+    pool: &PgPool,
+    id: i32,
+) -> Result<(), MyError> {
+    sqlx::query!(r#"UPDATE public.article SET heat = heat + 1 where id = $1"#, id)
+        .execute(pool)
+        .await
+        .map_err(|e| match e {
+            SQLxError::RowNotFound => MyError::CustomError("文章ID不存在".into()),
+            _ => MyError::DBError("删除失败".into())
+        })?;
+
+    Ok(())
+}
+
+//
+
 pub async fn get_article_list_web_db(
     pool: &PgPool,
 ) -> Result<ApiResponse<Vec<ArticleList>>, MyError> {
     let rows = sqlx::query_as!(
         ArticleList,
-        r#"SELECT id,c_id,c_name,title,describe,create_time,update_time
+        r#"SELECT id,c_id,c_name,title,describe,heat,like_number,create_time,update_time
            FROM public.article
            ORDER BY create_time DESC, update_time DESC
            LIMIT 20"#
+    )
+        .fetch_all(pool)
+        .await?;
+
+    Ok(ApiResponse::success(rows, "获取成功"))
+}
+
+pub async fn get_article_hot_list_web_db(
+    pool: &PgPool,
+) -> Result<ApiResponse<Vec<ArticleSimpleList>>, MyError> {
+    let rows = sqlx::query_as!(
+        ArticleSimpleList,
+        r#"SELECT id,title,create_time,update_time
+           FROM public.article
+           ORDER BY heat DESC, like_number DESC
+           LIMIT 10"#
     )
         .fetch_all(pool)
         .await?;
