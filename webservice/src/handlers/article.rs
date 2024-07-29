@@ -82,8 +82,21 @@ pub async fn get_article_list_web(
 ) -> Result<HttpResponse, MyError> {
     get_article_list_web_db(&app_state.db).await.map(|res| HttpResponse::Ok().json(res))
 }
+
+pub async fn get_article_list_all_web(
+    app_state: web::Data<AppState>
+) -> Result<HttpResponse, MyError> {
+    get_article_list_all_web_db(&app_state.db).await.map(|res| HttpResponse::Ok().json(res))
+}
+
 pub async fn get_article_hot_list_web(
     app_state: web::Data<AppState>
 ) -> Result<HttpResponse, MyError> {
     get_article_hot_list_web_db(&app_state.db).await.map(|res| HttpResponse::Ok().json(res))
+}
+
+pub async fn get_hot_category_list(
+    app_state: web::Data<AppState>
+) -> Result<HttpResponse, MyError> {
+    get_hot_category_list_db(&app_state.db).await.map(|res| HttpResponse::Ok().json(res))
 }

@@ -23,12 +23,17 @@ pub fn web_routes(cfg: &mut web::ServiceConfig) {
             .service(
                 web::scope("/article")
                     .route("", web::get().to(get_article_list_web))
-                    .route("/{id}", web::get().to(get_article))
-                    .route("hot", web::get().to(get_article_hot_list_web))
+                    .route("/all", web::get().to(get_article_list_all_web))
+                    .route("/hot", web::post().to(get_article_hot_list_web))
+                    .route("/{id:\\d+}", web::get().to(get_article))
             )
             .service(
                 web::scope("/introduce")
                     .route("", web::post().to(get_introduce_list))
+            )
+            .service(
+                web::scope("/category")
+                    .route("/hot", web::post().to(get_hot_category_list))
             )
     );
 }

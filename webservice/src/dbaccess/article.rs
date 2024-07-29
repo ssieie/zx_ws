@@ -2,7 +2,7 @@ use crate::errors::MyError;
 use sqlx::postgres::PgPool;
 use crate::common::api_response::ApiResponse;
 use sqlx::Error as SQLxError;
-use crate::models::admin::{Article, ArticleList, ArticleSimpleList, CreateArticle, UpdateArticle};
+use crate::models::admin::{Article, ArticleList, ArticleSimpleList, CreateArticle, HotCategory, UpdateArticle};
 use chrono::{Local};
 
 pub async fn get_article_list_db(
@@ -154,6 +154,21 @@ pub async fn get_article_list_web_db(
     Ok(ApiResponse::success(rows, "获取成功"))
 }
 
+pub async fn get_article_list_all_web_db(
+    pool: &PgPool,
+) -> Result<ApiResponse<Vec<ArticleList>>, MyError> {
+    let rows = sqlx::query_as!(
+        ArticleList,
+        r#"SELECT id,c_id,c_name,title,describe,heat,like_number,create_time,update_time
+           FROM public.article
+           ORDER BY create_time DESC, update_time DESC"#
+    )
+        .fetch_all(pool)
+        .await?;
+
+    Ok(ApiResponse::success(rows, "获取成功"))
+}
+
 pub async fn get_article_hot_list_web_db(
     pool: &PgPool,
 ) -> Result<ApiResponse<Vec<ArticleSimpleList>>, MyError> {
@@ -162,6 +177,23 @@ pub async fn get_article_hot_list_web_db(
         r#"SELECT id,title,create_time,update_time
            FROM public.article
            ORDER BY heat DESC, like_number DESC
+           LIMIT 10"#
+    )
+        .fetch_all(pool)
+        .await?;
+
+    Ok(ApiResponse::success(rows, "获取成功"))
+}
+
+pub async fn get_hot_category_list_db(
+    pool: &PgPool,
+) -> Result<ApiResponse<Vec<HotCategory>>, MyError> {
+    let rows = sqlx::query_as!(
+        HotCategory,
+        r#"SELECT c_id, c_name, SUM(heat) AS total_heat
+           FROM public.article
+           GROUP BY c_id, c_name
+           ORDER BY total_heat DESC
            LIMIT 10"#
     )
         .fetch_all(pool)

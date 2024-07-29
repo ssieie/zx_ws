@@ -70,6 +70,18 @@ impl From<web::Json<UpdateCategory>> for UpdateCategory {
     }
 }
 
+#[derive(Serialize, Debug, Clone, sqlx::FromRow)]
+pub struct HotCategory {
+    #[serde(rename = "cId")]
+    pub c_id: i32,
+
+    #[serde(rename = "cName")]
+    pub c_name: String,
+
+    #[serde(rename = "totalHeat")]
+    pub total_heat: Option<i64>,
+}
+
 /*************Article*************/
 
 #[derive(Serialize, Debug, Clone, sqlx::FromRow)]
