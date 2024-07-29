@@ -4,6 +4,7 @@ use chrono::{Utc, Duration};
 use actix_web::{web, HttpResponse, HttpRequest};
 use crate::dbaccess::article::*;
 use crate::models::admin::{CreateArticle, UpdateArticle};
+use crate::utils::get_real_ip::get_real_ip;
 
 pub async fn get_article_list(
     app_state: web::Data<AppState>,
@@ -23,10 +24,8 @@ pub async fn get_article(
 
     // 前台访问才加热度
     if uri.starts_with("/web/article") {
-        let ip_address = req
-            .peer_addr()
-            .map(|addr| addr.ip().to_string())
-            .unwrap_or_else(|| "Unknown".to_string()); // 获取客户端 IP 地址
+
+        let ip_address = get_real_ip(&req);
 
         let mut ip_access_map = app_state.ip_article_access_map.lock().unwrap();
         let now = Utc::now();

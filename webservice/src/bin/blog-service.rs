@@ -31,6 +31,8 @@ mod routers;
 mod state;
 #[path = "../errors.rs"]
 mod errors;
+#[path = "../utils/mod.rs"]
+mod utils;
 
 const HTTP_ADDR: &str = "0.0.0.0:9000";
 

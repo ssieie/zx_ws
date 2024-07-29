@@ -4,6 +4,7 @@ use actix_web::{dev::{forward_ready, Service, ServiceRequest, ServiceResponse, T
 use chrono::Local;
 use futures_util::future::LocalBoxFuture;
 use crate::state::AppState;
+use crate::utils::get_real_ip::get_real_ip;
 
 pub struct RequestRecord;
 
@@ -44,10 +45,7 @@ where
     forward_ready!(service);
 
     fn call(&self, req: ServiceRequest) -> Self::Future {
-        let ip = req
-            .peer_addr()
-            .map(|addr| addr.ip().to_string())
-            .unwrap_or_else(|| "Unknown".to_string());
+        let ip = get_real_ip(&req);
 
         let user_agent = req
             .headers()
