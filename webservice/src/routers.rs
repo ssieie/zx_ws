@@ -5,6 +5,7 @@ use crate::handlers::about::*;
 use crate::handlers::article::*;
 use crate::handlers::category::*;
 use crate::handlers::introduce::*;
+use crate::utils::save_files::save_files;
 
 pub fn health_routes(cfg: &mut web::ServiceConfig) {
     cfg.service(
@@ -46,6 +47,9 @@ pub fn admin_routes(cfg: &mut web::ServiceConfig) {
             )
             .service(web::scope("/login")
                 .route("", web::post().to(valid_login))
+            )
+            .service(web::scope("/upload")
+                .route("", web::post().to(save_files))
             )
             .service(
                 web::scope("/about")

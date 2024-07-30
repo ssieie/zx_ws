@@ -1,4 +1,4 @@
-use actix_web::{web, App, HttpServer, http};
+use actix_web::{web, App, HttpServer, http, middleware as actixMiddleware};
 use actix_cors::Cors;
 use dotenv::dotenv;
 use std::env;
@@ -40,6 +40,11 @@ const HTTP_ADDR: &str = "0.0.0.0:9000";
 async fn main() -> io::Result<()> {
     dotenv().ok();
 
+    env_logger::init_from_env(env_logger::Env::new().default_filter_or("info"));
+
+    info!("创建文件上传目录");
+    std::fs::create_dir_all("./bucket")?;
+
     let database_url = env::var("DATABASE_URL").expect("未找到 DATABASE_URL");
     let pg_pool = PgPoolOptions::new().connect(&database_url).await
         .unwrap();
@@ -61,12 +66,13 @@ async fn main() -> io::Result<()> {
     let shared_data = web::Data::new(AppState {
         db: pg_pool,
         ip_article_access_map,
-        authorization: Mutex::new(String::from("93c522ac-9e80-4f7c-a3c5-4571662bca91")),
+        authorization: Mutex::new(String::from("c442bfab-985d-43a0-9b02-2498cf89e6be")),
         _cleanup_handle: cleanup_handle,
     });
 
     let app = move || {
         App::new()
+            .wrap(actixMiddleware::Logger::default())
             .wrap(RequestRecord)
             .wrap(Auth)
             .wrap(
@@ -86,13 +92,11 @@ async fn main() -> io::Result<()> {
             .configure(admin_routes)
     };
 
+    info!("在以下位置启动HTTP服务器 {}", HTTP_ADDR);
+
     HttpServer::new(app)
         .keep_alive(http::KeepAlive::Timeout(Duration::from_secs_f32(90.0)))
         .bind(HTTP_ADDR)
-        .and_then(|server| {
-            info!("bind server to address {}", HTTP_ADDR);
-            Ok(server)
-        })
         .unwrap_or_else(|_err| {
             error!("could not bind server to address {}", HTTP_ADDR);
             error!("error : {}", _err.to_string());

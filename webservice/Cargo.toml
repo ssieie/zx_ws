@@ -10,6 +10,7 @@ default-run = "blog-service"
 actix-web = "4.6.0"
 actix-rt = "2.9.0"
 actix-cors = "0.7.0"
+actix-multipart = "0.7.2"
 serde = { version = "1.0.203", features = ["derive"] }
 chrono = { version = "0.4.38", features = ["serde"] }
 dotenv = "0.15.0"
@@ -21,6 +22,7 @@ sqlx = { version = "0.7.4", features = [
     "bigdecimal"
 ] }
 log = "0.4.21"
+env_logger = "0.11.5"
 md5 = "0.7.0"
 futures-util = "0.3.30"
 
