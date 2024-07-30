@@ -3,7 +3,7 @@ use crate::state::AppState;
 use chrono::{Utc, Duration};
 use actix_web::{web, HttpResponse, HttpRequest};
 use crate::dbaccess::article::*;
-use crate::models::admin::{CreateArticle, UpdateArticle};
+use crate::models::admin::{CreateArticle, UpdateArticle,ArticleQuery};
 use crate::utils::get_real_ip::get_real_ip;
 
 pub async fn get_article_list(
@@ -83,9 +83,10 @@ pub async fn get_article_list_web(
 }
 
 pub async fn get_article_list_all_web(
-    app_state: web::Data<AppState>
+    app_state: web::Data<AppState>,
+    query: web::Query<ArticleQuery>
 ) -> Result<HttpResponse, MyError> {
-    get_article_list_all_web_db(&app_state.db).await.map(|res| HttpResponse::Ok().json(res))
+    get_article_list_all_web_db(&app_state.db,query.cid).await.map(|res| HttpResponse::Ok().json(res))
 }
 
 pub async fn get_article_hot_list_web(

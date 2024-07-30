@@ -14,6 +14,7 @@ use crate::middleware::request_record::RequestRecord;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use tokio::time::{interval_at, Duration as TokioDuration, Instant};
+#[allow(unused)]
 use crate::config::config::{DEVELOPMENT_BUCKET_URL, PRODUCTION_BUCKET_URL};
 
 #[path = "../dbaccess/mod.rs"]

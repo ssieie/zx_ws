@@ -18,6 +18,7 @@ impl<T> ApiResponse<T> {
     }
 
     // 构造自定义响应
+    #[allow(unused)]
     pub fn custom(data: Option<T>, message: &str, status: u16) -> Self {
         ApiResponse {
             data,

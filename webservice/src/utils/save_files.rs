@@ -11,8 +11,10 @@ use log::info;
 use crate::common::api_response::ApiResponse;
 use crate::errors::MyError;
 use crate::config::config::{DEVELOPMENT_BUCKET_URL, PRODUCTION_BUCKET_URL};
-use std::path::PathBuf;
 use serde::Serialize;
+use std::io;
+#[cfg(unix)]
+use std::os::unix::fs::PermissionsExt;
 
 const MAX_SIZE: usize = 100 * 1024 * 1024; // 100MB
 
@@ -47,8 +49,6 @@ pub async fn save_files(MultipartForm(form): MultipartForm<UploadForm>) -> Resul
                 _ => format!("https://files.zxandhy.top/{}", rename)
             };
 
-            println!("{:?}", abs_path);
-
             let temp_path = f.file.path().to_path_buf();
 
             if f.size == 0 {
@@ -60,7 +60,12 @@ pub async fn save_files(MultipartForm(form): MultipartForm<UploadForm>) -> Resul
             }
 
             match f.file.persist(path.clone()) {
-                Ok(_) => info!("文件成功保存到 {}",path),
+                Ok(_) => {
+                    match set_perms(&path) {
+                        _ => ()
+                    };
+                    info!("文件成功保存到 {}",path)
+                }
                 Err(_) => {
                     if let Err(e) = fs::copy(&temp_path, &path) {
                         return Err(MyError::CustomError(e.to_string()));
@@ -70,6 +75,10 @@ pub async fn save_files(MultipartForm(form): MultipartForm<UploadForm>) -> Resul
                     }
 
                     info!("跨驱动器：文件成功复制到 {path}，并删除了临时文件");
+
+                    match set_perms(&path) {
+                        _ => ()
+                    };
                 }
             }
 
@@ -83,4 +92,22 @@ pub async fn save_files(MultipartForm(form): MultipartForm<UploadForm>) -> Resul
     }
 
     Ok(HttpResponse::Ok().json(ApiResponse::success(file_res, "上传成功")))
+}
+
+fn set_perms(path: &str) -> io::Result<()> {
+    #[allow(unused)]
+    let metadata = fs::metadata(path)?;
+
+    #[cfg(unix)]
+    {
+        // 在 Unix 平台上设置权限
+        let mut perms = metadata.permissions();
+        perms.set_mode(0o644);
+        fs::set_permissions(path, perms)?;
+    }
+
+    #[cfg(windows)]
+    {}
+
+    Ok(())
 }

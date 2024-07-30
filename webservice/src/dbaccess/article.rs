@@ -156,12 +156,15 @@ pub async fn get_article_list_web_db(
 
 pub async fn get_article_list_all_web_db(
     pool: &PgPool,
+    cid: Option<i32>,
 ) -> Result<ApiResponse<Vec<ArticleList>>, MyError> {
     let rows = sqlx::query_as!(
         ArticleList,
         r#"SELECT id,c_id,c_name,title,describe,heat,like_number,create_time,update_time
            FROM public.article
-           ORDER BY create_time DESC, update_time DESC"#
+           WHERE ($1::integer IS NULL OR c_id = $1)
+           ORDER BY create_time DESC, update_time DESC"#,
+        cid
     )
         .fetch_all(pool)
         .await?;

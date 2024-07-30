@@ -247,6 +247,11 @@ impl From<web::Json<UpdateArticle>> for UpdateArticle {
     }
 }
 
+#[derive(Deserialize)]
+pub struct ArticleQuery {
+    pub cid: Option<i32>
+}
+
 /*************introduceManage*************/
 #[derive(Serialize, Deserialize, Debug, Clone, sqlx::FromRow)]
 pub struct Introduce {
