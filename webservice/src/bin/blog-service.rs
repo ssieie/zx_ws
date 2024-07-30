@@ -14,6 +14,7 @@ use crate::middleware::request_record::RequestRecord;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use tokio::time::{interval_at, Duration as TokioDuration, Instant};
+use crate::config::config::{DEVELOPMENT_BUCKET_URL, PRODUCTION_BUCKET_URL};
 
 #[path = "../dbaccess/mod.rs"]
 mod dbaccess;
@@ -33,6 +34,8 @@ mod state;
 mod errors;
 #[path = "../utils/mod.rs"]
 mod utils;
+#[path = "../config/mod.rs"]
+mod config;
 
 const HTTP_ADDR: &str = "0.0.0.0:9000";
 
@@ -43,7 +46,14 @@ async fn main() -> io::Result<()> {
     env_logger::init_from_env(env_logger::Env::new().default_filter_or("info"));
 
     info!("创建文件上传目录");
-    std::fs::create_dir_all("./bucket")?;
+    #[cfg(windows)]
+    {
+        std::fs::create_dir_all(DEVELOPMENT_BUCKET_URL)?;
+    }
+    #[cfg(not(windows))]
+    {
+        std::fs::create_dir_all(PRODUCTION_BUCKET_URL)?;
+    }
 
     let database_url = env::var("DATABASE_URL").expect("未找到 DATABASE_URL");
     let pg_pool = PgPoolOptions::new().connect(&database_url).await

@@ -1,3 +1,4 @@
+use std::fs;
 use actix_multipart::{
     form::{
         tempfile::{TempFile},
@@ -5,9 +6,21 @@ use actix_multipart::{
     },
 };
 use actix_web::HttpResponse;
+use chrono::Local;
 use log::info;
 use crate::common::api_response::ApiResponse;
 use crate::errors::MyError;
+use crate::config::config::{DEVELOPMENT_BUCKET_URL, PRODUCTION_BUCKET_URL};
+use std::path::PathBuf;
+use serde::Serialize;
+
+const MAX_SIZE: usize = 100 * 1024 * 1024; // 100MB
+
+#[derive(Serialize, Debug, Clone)]
+pub struct FileInfo {
+    url: String,
+    name: String,
+}
 
 #[derive(Debug, MultipartForm)]
 pub struct UploadForm {
@@ -16,31 +29,58 @@ pub struct UploadForm {
 }
 
 pub async fn save_files(MultipartForm(form): MultipartForm<UploadForm>) -> Result<HttpResponse, MyError> {
+    let mut file_res: Vec<FileInfo> = vec![];
+
     for f in form.files {
         if let Some(filename) = f.file_name {
-            let path = format!("./bucket/{}", filename);
-            info!("保存到 {path}");
+            let timestamp = Local::now().timestamp();
+
+            let rename = format!("{}-{}", timestamp, filename);
+
+            let path = match std::env::consts::OS {
+                "windows" => format!("{}/{}", DEVELOPMENT_BUCKET_URL, rename),
+                _ => format!("{}/{}", PRODUCTION_BUCKET_URL, rename),
+            };
+
+            let abs_path = match std::env::consts::OS {
+                "windows" => format!("http://localhost:8080/{}", rename),
+                _ => format!("https://files.zxandhy.top/{}", rename)
+            };
+
+            println!("{:?}", abs_path);
 
             let temp_path = f.file.path().to_path_buf();
 
-            match f.file.persist(path.clone()) {
-                Ok(_) => info!("文件成功保存到 {}",temp_path.to_str().unwrap_or_else(||"Unknown")),
-                Err(_) => {
+            if f.size == 0 {
+                return Err(MyError::CustomError("文件大小获取失败".into()));
+            }
 
-                    if let Err(e) = std::fs::copy(&temp_path, &path) {
+            if f.size > MAX_SIZE {
+                return Err(MyError::CustomError("文件大小超出限制".into()));
+            }
+
+            match f.file.persist(path.clone()) {
+                Ok(_) => info!("文件成功保存到 {}",path),
+                Err(_) => {
+                    if let Err(e) = fs::copy(&temp_path, &path) {
                         return Err(MyError::CustomError(e.to_string()));
                     }
-                    if let Err(e) = std::fs::remove_file(&temp_path) {
+                    if let Err(e) = fs::remove_file(&temp_path) {
                         return Err(MyError::CustomError(e.to_string()));
                     }
 
                     info!("跨驱动器：文件成功复制到 {path}，并删除了临时文件");
                 }
             }
+
+            file_res.push(FileInfo {
+                name: rename,
+                url: abs_path,
+            });
         } else {
             return Err(MyError::CustomError("文件名不能为空".into()));
         }
     }
 
-    Ok(HttpResponse::Ok().json(ApiResponse::success("", "上传成功")))
+    Ok(HttpResponse::Ok().json(ApiResponse::success(file_res, "上传成功")))
 }
