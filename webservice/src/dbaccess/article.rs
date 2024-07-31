@@ -204,3 +204,19 @@ pub async fn get_hot_category_list_db(
 
     Ok(ApiResponse::success(rows, "获取成功"))
 }
+
+pub async fn article_like_add_web_db(
+    pool: &PgPool,
+    id: i32,
+) -> Result<ApiResponse<&str>, MyError> {
+    let rows = sqlx::query_as!(
+        HotCategory,
+        r#"UPDATE public.article set like_number = like_number + $1
+        where id = $2"#,
+        9,id
+    )
+        .fetch_all(pool)
+        .await?;
+
+    Ok(ApiResponse::success("", "操作成功"))
+}

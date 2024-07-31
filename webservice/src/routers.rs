@@ -26,6 +26,7 @@ pub fn web_routes(cfg: &mut web::ServiceConfig) {
                     .route("", web::get().to(get_article_list_web))
                     .route("/all", web::get().to(get_article_list_all_web))
                     .route("/hot", web::post().to(get_article_hot_list_web))
+                    .route("/like/{id}", web::post().to(article_like_add_web))
                     .route("/{id:\\d+}", web::get().to(get_article))
             )
             .service(

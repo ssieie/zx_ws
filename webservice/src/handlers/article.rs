@@ -3,7 +3,7 @@ use crate::state::AppState;
 use chrono::{Utc, Duration};
 use actix_web::{web, HttpResponse, HttpRequest};
 use crate::dbaccess::article::*;
-use crate::models::admin::{CreateArticle, UpdateArticle,ArticleQuery};
+use crate::models::admin::{CreateArticle, UpdateArticle, ArticleQuery};
 use crate::utils::get_real_ip::get_real_ip;
 
 pub async fn get_article_list(
@@ -24,7 +24,6 @@ pub async fn get_article(
 
     // 前台访问才加热度
     if uri.starts_with("/web/article") {
-
         let ip_address = get_real_ip(&req);
 
         let mut ip_access_map = app_state.ip_article_access_map.lock().unwrap();
@@ -48,7 +47,7 @@ pub async fn get_article(
         update_article_heat_db(&app_state.db, id).await?;
 
         get_article_db(&app_state.db, id).await.map(|res| HttpResponse::Ok().json(res))
-    }else {
+    } else {
         get_article_db(&app_state.db, id).await.map(|res| HttpResponse::Ok().json(res))
     }
 }
@@ -84,9 +83,9 @@ pub async fn get_article_list_web(
 
 pub async fn get_article_list_all_web(
     app_state: web::Data<AppState>,
-    query: web::Query<ArticleQuery>
+    query: web::Query<ArticleQuery>,
 ) -> Result<HttpResponse, MyError> {
-    get_article_list_all_web_db(&app_state.db,query.cid).await.map(|res| HttpResponse::Ok().json(res))
+    get_article_list_all_web_db(&app_state.db, query.cid).await.map(|res| HttpResponse::Ok().json(res))
 }
 
 pub async fn get_article_hot_list_web(
@@ -99,4 +98,12 @@ pub async fn get_hot_category_list(
     app_state: web::Data<AppState>
 ) -> Result<HttpResponse, MyError> {
     get_hot_category_list_db(&app_state.db).await.map(|res| HttpResponse::Ok().json(res))
+}
+
+pub async fn article_like_add_web(
+    app_state: web::Data<AppState>,
+    params: web::Path<i32>,
+) -> Result<HttpResponse, MyError> {
+    let id = params.into_inner();
+    article_like_add_web_db(&app_state.db, id).await.map(|res| HttpResponse::Ok().json(res))
 }
