@@ -40,6 +40,12 @@ pub fn web_routes(cfg: &mut web::ServiceConfig) {
                 web::scope("/category")
                     .route("/hot", web::post().to(get_hot_category_list))
             )
+            .service(
+                web::scope("/photo")
+                    .route("/new", web::post().to(get_photo_new_list))
+                    .route("/hot", web::post().to(get_photo_hot_list))
+                    .route("/tvSeries", web::post().to(get_photo_tv_series))
+            )
     );
 }
 

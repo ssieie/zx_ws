@@ -84,6 +84,10 @@ impl From<Json<UpdateTvSeries>> for UpdateTvSeries {
 pub struct Photo {
     pub id: i32,
 
+    pub width: Option<i32>,
+
+    pub height: Option<i32>,
+
     #[serde(rename = "photoCategoryId")]
     pub photo_category_id: Option<i32>,
 
@@ -115,6 +119,10 @@ pub struct Photo {
 
 #[derive(Deserialize, Debug, Clone)]
 pub struct CreatPhoto {
+    pub width: Option<i32>,
+
+    pub height: Option<i32>,
+
     #[serde(rename = "photoCategoryId")]
     pub photo_category_id: Option<i32>,
 
@@ -132,6 +140,8 @@ pub struct CreatPhoto {
 impl From<Json<CreatPhoto>> for CreatPhoto {
     fn from(photo: Json<CreatPhoto>) -> Self {
         Self {
+            width: photo.width,
+            height: photo.height,
             photo_category_id: photo.photo_category_id.clone(),
             tv_series_id: photo.tv_series_id.clone(),
             photo_url: photo.photo_url.clone(),
@@ -144,6 +154,10 @@ impl From<Json<CreatPhoto>> for CreatPhoto {
 #[derive(Deserialize, Debug, Clone)]
 pub struct UpdatePhoto {
     pub id: i32,
+
+    pub width: Option<i32>,
+
+    pub height: Option<i32>,
 
     #[serde(rename = "photoCategoryId")]
     pub photo_category_id: Option<i32>,
@@ -163,6 +177,8 @@ impl From<Json<UpdatePhoto>> for UpdatePhoto {
     fn from(photo: Json<UpdatePhoto>) -> Self {
         Self {
             id: photo.id,
+            width: photo.width,
+            height: photo.height,
             photo_category_id: photo.photo_category_id.clone(),
             tv_series_id: photo.tv_series_id.clone(),
             photo_url: photo.photo_url.clone(),
