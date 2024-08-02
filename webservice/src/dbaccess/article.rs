@@ -209,14 +209,13 @@ pub async fn article_like_add_web_db(
     pool: &PgPool,
     id: i32,
 ) -> Result<ApiResponse<&str>, MyError> {
-    let rows = sqlx::query_as!(
-        HotCategory,
-        r#"UPDATE public.article set like_number = like_number + $1
-        where id = $2"#,
-        9,id
-    )
-        .fetch_all(pool)
-        .await?;
+    sqlx::query!(r#"UPDATE public.article SET like_number = like_number + 9 where id = $1"#, id)
+        .execute(pool)
+        .await
+        .map_err(|e| match e {
+            SQLxError::RowNotFound => MyError::CustomError("文章ID不存在".into()),
+            _ => MyError::DBError("操作失败".into())
+        })?;
 
     Ok(ApiResponse::success("", "操作成功"))
 }

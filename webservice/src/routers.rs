@@ -5,6 +5,9 @@ use crate::handlers::about::*;
 use crate::handlers::article::*;
 use crate::handlers::category::*;
 use crate::handlers::introduce::*;
+use crate::handlers::photo_category::*;
+use crate::handlers::photo_tv_series::*;
+use crate::handlers::photo::*;
 use crate::utils::save_files::save_files;
 
 pub fn health_routes(cfg: &mut web::ServiceConfig) {
@@ -78,6 +81,29 @@ pub fn admin_routes(cfg: &mut web::ServiceConfig) {
                     .route("/add", web::post().to(add_introduce))
                     .route("/update", web::post().to(update_introduce))
                     .route("/{id}", web::delete().to(delete_introduce)),
+            )
+            .service(
+                web::scope("/photoCategory")
+                    .route("/list", web::post().to(get_photo_category))
+                    .route("/add", web::post().to(add_photo_category))
+                    .route("/update", web::post().to(update_photo_category))
+                    .route("/{id}", web::delete().to(delete_photo_category)),
+            )
+            .service(
+                web::scope("/photoTvSeries")
+                    .route("/list", web::post().to(get_photo_tv_series))
+                    .route("/add", web::post().to(add_photo_tv_series))
+                    .route("/update", web::post().to(update_photo_tv_series))
+                    .route("/{id}", web::get().to(get_photo_tv_series_details))
+                    .route("/{id}", web::delete().to(delete_photo_tv_series)),
+            )
+            .service(
+                web::scope("/photo")
+                    .route("/list", web::post().to(get_photo_list))
+                    .route("/add", web::post().to(add_photo))
+                    .route("/update", web::post().to(update_photo))
+                    .route("/{id}", web::get().to(get_photo))
+                    .route("/{id}", web::delete().to(delete_photo)),
             )
     );
 }
