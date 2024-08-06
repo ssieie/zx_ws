@@ -32,11 +32,13 @@ mime_guess = "2.0.5"
 image = "0.25.2"
 imageproc = "0.25.0"
 
+awc = { version = "3.5.0", features = ["rustls"] }
+
 [dependencies.uuid]
 version = "1.10.0"
 features = [
-    "v4",                # Lets you generate random UUIDs
-    "fast-rng",          # Use a faster (but still sufficiently random) RNG
+    "v4", # Lets you generate random UUIDs
+    "fast-rng", # Use a faster (but still sufficiently random) RNG
     "macro-diagnostics", # Enable better diagnostics for compile-time UUIDs
 ]
 

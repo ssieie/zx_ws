@@ -7,3 +7,4 @@ pub mod introduce;
 pub mod photo_category;
 pub mod photo_tv_series;
 pub mod photo;
+pub mod other;
