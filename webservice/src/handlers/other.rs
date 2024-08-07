@@ -22,7 +22,6 @@ pub async fn get_60s_news_list() -> Result<HttpResponse, MyError> {
             }
         }
         Err(_e) => {
-            println!("{}",_e);
             return Err(MyError::CustomError("60s news获取失败".into()))
         }
     }

@@ -9,6 +9,7 @@ use crate::handlers::photo_category::*;
 use crate::handlers::photo_tv_series::*;
 use crate::handlers::photo::*;
 use crate::handlers::other::*;
+use crate::handlers::comment::*;
 use crate::utils::save_files::save_files;
 
 pub fn health_routes(cfg: &mut web::ServiceConfig) {
@@ -46,6 +47,11 @@ pub fn web_routes(cfg: &mut web::ServiceConfig) {
                     .route("/new", web::post().to(get_photo_new_list))
                     .route("/hot", web::post().to(get_photo_hot_list))
                     .route("/tvSeries", web::post().to(get_photo_tv_series))
+            )
+            .service(
+                web::scope("/comment")
+                    .route("/add", web::post().to(add_article_comment))
+                    .route("/{id:\\d+}", web::get().to(get_article_comment_list))
             )
             .service(
                 web::scope("/other")
