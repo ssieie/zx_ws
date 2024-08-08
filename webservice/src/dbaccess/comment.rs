@@ -1,15 +1,14 @@
 use crate::errors::MyError;
 use sqlx::postgres::PgPool;
 use crate::common::api_response::ApiResponse;
-use crate::models::comment::{CreateComment, Comment};
+use crate::models::comment::{CreateComment, Comment, CommentRes};
 use chrono::{Local};
+use crate::utils::tree::{Tree};
 
 pub async fn add_article_comment_db(
     pool: &PgPool,
     data: CreateComment,
 ) -> Result<ApiResponse<Comment>, MyError> {
-
-
     let create_time = Local::now().naive_local();
     let row = sqlx::query_as!(
         Comment,
@@ -33,7 +32,18 @@ pub async fn add_article_comment_db(
 pub async fn get_article_comment_list_db(
     pool: &PgPool,
     id: i32,
-) -> Result<ApiResponse<Vec<Comment>>, MyError> {
+) -> Result<ApiResponse<CommentRes>, MyError> {
+
+    let total_count = sqlx::query_scalar!(
+        r#"
+        SELECT COUNT(*) FROM public.comment
+        WHERE article_id = $1
+        "#,
+        id
+    )
+        .fetch_one(pool)
+        .await?;
+
     let rows = sqlx::query_as!(
         Comment,
         r#"SELECT id, p_id, article_id, name, comment, create_time
@@ -42,5 +52,7 @@ pub async fn get_article_comment_list_db(
         .fetch_all(pool)
         .await?;
 
-    Ok(ApiResponse::success(rows, "获取成功"))
+    let tree = Tree::from(rows).nodes;
+
+    return Ok(ApiResponse::success(CommentRes::new(tree,total_count.unwrap()), "获取成功"));
 }

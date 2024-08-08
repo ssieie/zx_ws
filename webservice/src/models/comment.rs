@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 use actix_web::web::Json;
 use chrono::NaiveDateTime;
+use crate::utils::tree::{Node, TreeNode};
 
 #[derive(Serialize, Debug, Clone, sqlx::FromRow)]
 pub struct Comment {
@@ -18,6 +19,31 @@ pub struct Comment {
 
     #[serde(rename = "createTime")]
     pub create_time: Option<NaiveDateTime>,
+}
+
+impl TreeNode for Comment {
+    type Id = i32;
+    fn key(&self) -> Self::Id {
+        self.id
+    }
+    fn parent_key(&self) -> Option<Self::Id> {
+        self.p_id
+    }
+}
+
+#[derive(Serialize)]
+pub struct CommentRes {
+    pub data: Option<Vec<Node<Comment>>>,
+    pub total: i64,
+}
+
+impl CommentRes {
+    pub fn new(data: Option<Vec<Node<Comment>>>, total: i64) -> Self {
+        Self {
+            data,
+            total,
+        }
+    }
 }
 
 impl From<Json<Comment>> for Comment {
