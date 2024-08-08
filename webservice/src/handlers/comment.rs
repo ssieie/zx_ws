@@ -33,38 +33,36 @@ pub async fn add_article_comment(
         let mut info = HashMap::new();
         info.insert("secret", &secret);
         info.insert("response", &data.token);
-        
-        match client.post(url).timeout(Duration::from_secs(60)).send_json(&info).await {
-            Ok(mut response)=>{
-                if response.status().is_success() {
 
+        match client.post(url).timeout(Duration::from_secs(60)).send_json(&info).await {
+            Ok(mut response) => {
+                if response.status().is_success() {
                     let body = response.body().await.map_err(|e| {
                         MyError::CustomError(format!("验证读取响应体失败: {:?}", e))
                     })?;
 
-                    let box_text = String::from_utf8(body.to_vec()).map_err(|e|{
+                    let box_text = String::from_utf8(body.to_vec()).map_err(|e| {
                         MyError::CustomError(format!("响应体转String失败: {:?}", e))
                     })?;
 
-                    let verification_response:VerificationResponse = serde_json::from_str(&box_text).map_err(|e|{
+                    let verification_response: VerificationResponse = serde_json::from_str(&box_text).map_err(|e| {
                         MyError::CustomError(format!("解析 JSON 失败: {:?}", e))
                     })?;
 
                     if verification_response.success {
                         add_article_comment_db(&app_state.db, data.into()).await.map(|res| HttpResponse::Ok().json(res))
-                    }else {
+                    } else {
                         return Err(MyError::CustomError("验证失败".into()));
                     }
-
-                }else {
-                    return Err(MyError::CustomError("验证失败".into()))
+                } else {
+                    return Err(MyError::CustomError("验证失败".into()));
                 }
             }
             Err(_e) => {
                 return Err(MyError::CustomError("验证失败".into()))
             }
         }
-    }else {
+    } else {
         return Err(MyError::CustomError("secret 获取失败".into()));
     }
 }
