@@ -77,7 +77,7 @@ async fn main() -> io::Result<()> {
     let shared_data = web::Data::new(AppState {
         db: pg_pool,
         ip_article_access_map,
-        authorization: Mutex::new(String::from("49e19283-62ad-49db-a0f7-10ac5b1fa343")),
+        authorization: Mutex::new(String::from("5d51f2a8-953c-4188-9348-342393404a4c")),
         _cleanup_handle: cleanup_handle,
     });
 

@@ -122,5 +122,10 @@ pub fn admin_routes(cfg: &mut web::ServiceConfig) {
                     .route("/{id}", web::get().to(get_photo))
                     .route("/{id}", web::delete().to(delete_photo)),
             )
+            .service(
+                web::scope("/comment")
+                    .route("/{id:\\d+}", web::get().to(get_article_comment_list))
+                    .route("/{id:\\d+}", web::delete().to(del_article_comment))
+            )
     );
 }

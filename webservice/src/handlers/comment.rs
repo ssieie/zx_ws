@@ -74,3 +74,11 @@ pub async fn get_article_comment_list(
     let id = params.into_inner();
     get_article_comment_list_db(&app_state.db, id).await.map(|res| HttpResponse::Ok().json(res))
 }
+
+pub async fn del_article_comment(
+    app_state: web::Data<AppState>,
+    params: web::Path<i32>,
+) -> Result<HttpResponse, MyError> {
+    let id = params.into_inner();
+    del_article_comment_db(&app_state.db, id).await.map(|res| HttpResponse::Ok().json(res))
+}

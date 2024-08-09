@@ -108,3 +108,37 @@ async fn reply_email_notice(pool: &PgPool, parent_id: i32, comment: &str, name: 
 
     Ok(())
 }
+
+pub async fn del_article_comment_db(
+    pool: &PgPool,
+    id: i32,
+) -> Result<ApiResponse<Option<()>>, MyError> {
+
+    let mut transaction = pool.begin().await?;
+
+    let result = sqlx::query!(
+    r#"WITH RECURSIVE child_comments AS (
+        SELECT id
+        FROM public.comment
+        WHERE id = $1
+        UNION ALL
+        SELECT c.id
+        FROM public.comment c
+        INNER JOIN child_comments cc ON cc.id = c.p_id
+    )
+    DELETE FROM public.comment
+    WHERE id IN (SELECT id FROM child_comments);"#,
+    id
+)
+        .execute(&mut *transaction)
+        .await?;
+
+    // 检查结果并提交事务
+    if result.rows_affected() > 0 {
+        transaction.commit().await?; // 提交事务
+    } else {
+        transaction.rollback().await?; // 回滚事务
+    }
+
+    return Ok(ApiResponse::success(None, "删除成功"));
+}
